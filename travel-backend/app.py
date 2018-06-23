@@ -13,6 +13,7 @@ def hello():
 def places():
     return render_template("places.html")
 
+
 if __name__ == '__main__':
     app.run()
 
