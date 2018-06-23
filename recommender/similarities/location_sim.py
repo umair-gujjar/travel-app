@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import pickle
 from collections import Counter
 
 locations = {}
@@ -39,3 +40,6 @@ if __name__ == '__main__':
             location_sims[i, j] = cosine_sim(list(locations.values())[i], list(locations.values())[j])
 
     np.savetxt(LLM_FILE, location_sims, fmt='%0.6f', delimiter='\t', newline='\n')
+    pickle_out = open("../data/LLM.pickle", "wb")
+    pickle.dump(location_sims, pickle_out)
+    pickle_out.close()
