@@ -1,15 +1,14 @@
+import json
 import numpy as np
 from collections import Counter
 
+locations = {}
 LLM_FILE = '../data/LLM.txt'
 
-locations = {
-    1: ['bar', 'restaurant', 'café'],
-    2: ['bar', 'café'],
-    3: ['restaurant'],
-    4: ['park', 'point_of_interest'],
-    5: ['restaurant']
-    }
+with open('../data/test_json.txt', encoding='utf-8') as json_file:
+    data = json.load(json_file)
+    for l in data['results']:
+        locations[l['id']] = str(l['types'])
 
 len_locations = len(locations)
 location_sims = np.zeros(shape=(len_locations, len_locations), dtype=np.float32)
@@ -36,8 +35,6 @@ def cosine_sim(vec1, vec2):
 
 if __name__ == '__main__':
     for i in range(0, len_locations):
-        print
-        'Location Nr.: ', i
         for j in range(i, len_locations):
             location_sims[i, j] = cosine_sim(list(locations.values())[i], list(locations.values())[j])
 

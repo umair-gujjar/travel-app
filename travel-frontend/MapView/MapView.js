@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
-import mockedMarkers from '../data'
 
 export default class Map extends Component {
   constructor(props) {
@@ -17,7 +16,13 @@ export default class Map extends Component {
 
   componentDidMount() {
     this._initLocation()
-    this._fetchMarkers()
+  }
+
+  componentDidUpdate () {
+    console.log(this.state.markers)
+    if (this.state.locationResult && !this.state.markers.length) {
+      this._fetchMarkers()
+    }
   }
 
   _checkPermissions = async () => {
@@ -39,20 +44,26 @@ export default class Map extends Component {
       mapRegion: {
         latitude: coords.latitude,
         longitude: coords.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01
       }
     })
   }
 
   _fetchMarkers = async () => {
-    const markers = mockedMarkers.map((mockedMarker) => ({
-      coord: {
-        latitude: mockedMarker.geometry.location.lat,
-        longitude: mockedMarker.geometry.location.lng
-      }
-    }))
-    this.setState({ markers })
+    const { latitude, longitude } = this.state.mapRegion
+    const fetchedMarkers = await fetch(`http://5b684a58.ngrok.io/rest/find-recommended?location=${latitude},${longitude}&radius=1000`)
+    const data = await fetchedMarkers.json()
+    if (data) {
+      const markers = data.map(marker => ({
+        coords: {
+          latitude: marker.geometry.location.lat,
+          longitude: marker.geometry.location.lng
+        }
+      }))
+      console.log(markers)
+      this.setState({ markers })
+    }
   }
 
   render() {
