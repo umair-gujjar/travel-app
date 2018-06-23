@@ -4,6 +4,7 @@ import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
 import ModalView from '../Modal/Modal'
 import { getHost, processMarkers } from "../lib/utils";
+import axios from 'axios'
 
 const latitudeDelta = 0.01
 const longitudeDelta = 0.01
@@ -21,12 +22,12 @@ export default class Map extends Component {
   }
 
   componentDidMount() {
-    // this._initLocation()
+    this._initLocation()
   }
 
   componentDidUpdate() {
     if (this.state.locationResult && !this.state.markers.length) {
-      // this._fetchMarkers()
+      this._fetchMarkers()
     }
   }
 
@@ -57,11 +58,17 @@ export default class Map extends Component {
 
   _fetchMarkers = async () => {
     const { latitude, longitude } = this.state.mapRegion
-    const fetchedMarkers = await fetch(`${getHost()}/rest/find-recommended?location=${latitude},${longitude}&radius=1000`)
-    const data = await fetchedMarkers.json()
-    if (data) {
-      this.setState({ markers: processMarkers(data) })
+    const url = `${getHost()}/rest/find-recommended?location=${latitude},${longitude}&radius=1000`
+    try {
+      const { data } = await axios.get(url)
+      if (data) {
+        this.setState({ markers: processMarkers(data) })
+      }
+    } catch (e) {
+      console.log(e)
     }
+
+
   }
 
   setMarker = (title) => {
@@ -78,13 +85,11 @@ export default class Map extends Component {
   }
 
   openModal = (e) => {
-    console.log('openModal')
     const { coordinate } = e.nativeEvent
     this.setState({ openModal: true, currentCoords: coordinate })
   }
 
   closeModal = () => {
-    console.log('close')
     this.setState({ openModal: false })
   }
 
@@ -98,66 +103,42 @@ export default class Map extends Component {
 
     return (
       <View style={styles.container}>
-        <View
-          style={{ width: '100%' }}
-        >
-          <MapView
-            style={{ alignSelf: 'stretch', height: '100%' }}
-            region={mapRegion}
-            showsUserLocation={true}
-            onLongPress={this.openModal}
-          >
-            <Markers
-              markers={markers}
-            />
-          </MapView>
-          <TouchableOpacity
-            style={styles.mapButton}
-            onPress={this._setCurrentPosition}
-          >
-            <Text style={{ fontWeight: 'bold', color: 'black' }}>
-              Me
-            </Text>
-          </TouchableOpacity>
-          {openModal && <ModalView
-            openModal={openModal}
-            closeModal={this.closeModal}
-            submitMarker={this.submitMarker}
-          />}
-        </View>
-        {/*{*/}
-        {/*locationResult === null ?*/}
-        {/*<Text>Finding your current location...</Text> :*/}
-        {/*hasLocationPermissions === false ?*/}
-        {/*<Text>Location permissions are not granted.</Text> :*/}
-        {/*mapRegion === null ?*/}
-        {/*<Text>Map region doesn't exist.</Text> :*/}
-        {/*<View*/}
-        {/*style={{ width: '100%' }}*/}
-        {/*>*/}
-        {/*<MapView*/}
-        {/*style={{ alignSelf: 'stretch', height: '100%' }}*/}
-        {/*region={mapRegion}*/}
-        {/*showsUserLocation={true}*/}
-        {/*onLongPress={e => console.log(e)}*/}
-        {/*>*/}
-        {/*<Markers*/}
-        {/*markers={markers}*/}
-        {/*/>*/}
-        {/*</MapView>*/}
-        {/*<TouchableOpacity*/}
-        {/*style={styles.mapButton}*/}
-        {/*onPress={this._setCurrentPosition}*/}
-        {/*>*/}
-        {/*<Text style={{ fontWeight: 'bold', color: 'black' }}>*/}
-        {/*Me*/}
-        {/*</Text>*/}
-        {/*</TouchableOpacity>*/}
-
-        {/*</View>*/}
-        {/*}*/}
+        {
+          locationResult === null ?
+            <Text>Finding your current location...</Text> :
+            hasLocationPermissions === false ?
+              <Text>Location permissions are not granted.</Text> :
+              mapRegion === null ?
+                <Text>Map region doesn't exist.</Text> :
+                <View
+                  style={{ width: '100%' }}
+                >
+                  <MapView
+                    style={{ alignSelf: 'stretch', height: '100%' }}
+                    region={mapRegion}
+                    showsUserLocation={true}
+                    onLongPress={this.openModal}
+                  >
+                    <Markers
+                      markers={markers}
+                    />
+                  </MapView>
+                  <TouchableOpacity
+                    style={styles.mapButton}
+                    onPress={this._setCurrentPosition}
+                  >
+                    <Text style={{ fontWeight: 'bold', color: 'black' }}>
+                      Me
+                    </Text>
+                  </TouchableOpacity>
+                  {openModal && <ModalView
+                    openModal={openModal}
+                    closeModal={this.closeModal}
+                    submitMarker={this.submitMarker}
+                  />}
+                </View>
+        }
       </View>
-
     )
   }
 }
