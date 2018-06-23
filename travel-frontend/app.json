@@ -1,5 +1,14 @@
 {
   "expo": {
-    "sdkVersion": "27.0.0"
+    "name": "TravelApp",
+    "icon": "./icon.png",
+    "version": "1.0.0",
+    "sdkVersion": "27.0.0",
+    "ios": {
+      "bundleIdentifier": "com.travel.travelapp"
+    },
+    "android": {
+      "package": "com.travel.travelapp"
+    }
   }
 }
