@@ -2,6 +2,10 @@ import React, { Component } from 'react'
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
+import { getHost, processMarkers } from "../lib/utils";
+
+const latitudeDelta = 0.01
+const longitudeDelta = 0.01
 
 export default class Map extends Component {
   constructor(props) {
@@ -15,13 +19,12 @@ export default class Map extends Component {
   }
 
   componentDidMount() {
-    this._initLocation()
+    // this._initLocation()
   }
 
-  componentDidUpdate () {
-    console.log(this.state.markers)
+  componentDidUpdate() {
     if (this.state.locationResult && !this.state.markers.length) {
-      this._fetchMarkers()
+      // this._fetchMarkers()
     }
   }
 
@@ -44,63 +47,91 @@ export default class Map extends Component {
       mapRegion: {
         latitude: coords.latitude,
         longitude: coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01
+        latitudeDelta,
+        longitudeDelta
       }
     })
   }
 
   _fetchMarkers = async () => {
     const { latitude, longitude } = this.state.mapRegion
-    const fetchedMarkers = await fetch(`http://5b684a58.ngrok.io/rest/find-recommended?location=${latitude},${longitude}&radius=1000`)
+    const fetchedMarkers = await fetch(`${getHost()}/rest/find-recommended?location=${latitude},${longitude}&radius=1000`)
     const data = await fetchedMarkers.json()
     if (data) {
-      const markers = data.map(marker => ({
-        coords: {
-          latitude: marker.geometry.location.lat,
-          longitude: marker.geometry.location.lng
-        }
-      }))
-      console.log(markers)
-      this.setState({ markers })
+      this.setState({ markers: processMarkers(data) })
     }
   }
 
+  setMarker = (e) => {
+    const { coordinate } = e.nativeEvent
+    const markers = [...this.state.markers, {
+      coords: {
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude
+      }
+    }]
+    this.setState({ markers })
+  }
+
   render() {
-    const {locationResult, hasLocationPermissions, mapRegion, markers} = this.state
+    const { locationResult, hasLocationPermissions, mapRegion, markers } = this.state
 
     return (
       <View style={styles.container}>
-        {
-          locationResult === null ?
-            <Text>Finding your current location...</Text> :
-            hasLocationPermissions === false ?
-              <Text>Location permissions are not granted.</Text> :
-              mapRegion === null ?
-                <Text>Map region doesn't exist.</Text> :
-                <View
-                  style={{ width: '100%' }}
-                >
-                  <MapView
-                    style={{ alignSelf: 'stretch', height: '100%' }}
-                    region={mapRegion}
-                    showsUserLocation={true}
-                  >
-                    <Markers
-                      markers={markers}
-                    />
-                  </MapView>
-                  <TouchableOpacity
-                    style={styles.mapButton}
-                    onPress={this._setCurrentPosition}
-                  >
-                    <Text style={{ fontWeight: 'bold', color: 'black' }}>
-                      Me
-                    </Text>
-                  </TouchableOpacity>
+        <View
+          style={{ width: '100%' }}
+        >
+          <MapView
+            style={{ alignSelf: 'stretch', height: '100%' }}
+            region={mapRegion}
+            showsUserLocation={true}
+            onLongPress={this.setMarker}
+          >
+            <Markers
+              markers={markers}
+            />
+          </MapView>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={this._setCurrentPosition}
+          >
+            <Text style={{ fontWeight: 'bold', color: 'black' }}>
+              Me
+            </Text>
+          </TouchableOpacity>
 
-                </View>
-        }
+        </View>
+        {/*{*/}
+        {/*locationResult === null ?*/}
+        {/*<Text>Finding your current location...</Text> :*/}
+        {/*hasLocationPermissions === false ?*/}
+        {/*<Text>Location permissions are not granted.</Text> :*/}
+        {/*mapRegion === null ?*/}
+        {/*<Text>Map region doesn't exist.</Text> :*/}
+        {/*<View*/}
+        {/*style={{ width: '100%' }}*/}
+        {/*>*/}
+        {/*<MapView*/}
+        {/*style={{ alignSelf: 'stretch', height: '100%' }}*/}
+        {/*region={mapRegion}*/}
+        {/*showsUserLocation={true}*/}
+        {/*onLongPress={e => console.log(e)}*/}
+        {/*>*/}
+        {/*<Markers*/}
+        {/*markers={markers}*/}
+        {/*/>*/}
+        {/*</MapView>*/}
+        {/*<TouchableOpacity*/}
+        {/*style={styles.mapButton}*/}
+        {/*onPress={this._setCurrentPosition}*/}
+        {/*>*/}
+        {/*<Text style={{ fontWeight: 'bold', color: 'black' }}>*/}
+        {/*Me*/}
+        {/*</Text>*/}
+        {/*</TouchableOpacity>*/}
+
+        {/*</View>*/}
+        {/*}*/}
       </View>
 
     )
