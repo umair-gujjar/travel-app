@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import numpy as np
 import os
 import pickle
@@ -41,12 +42,13 @@ def recommend_locations_CB(LLM, ULM, u, locations, k, num_recommendations, OUTPU
         sort_idx = np.argsort(sum_idx)
 
         highest_similarities = sort_idx[-num_recommendations:]
-
         if OUTPUT:
             locations_array = np.asarray(locations)
-            print
-            "Content Based Recommender - Names of the " + str(len(highest_similarities)) + " recommended locations: ", locations_array[
-                highest_similarities]
+            print("#########################")
+            print("Content Based Recommender")
+            print("Names of the " + str(len(highest_similarities)) + " recommended locations: ")
+            for l in locations_array[highest_similarities]:
+                print(l)
         return highest_similarities
 
     else:
@@ -55,7 +57,7 @@ def recommend_locations_CB(LLM, ULM, u, locations, k, num_recommendations, OUTPU
 
 
 def load_matrix(file_name):
-    pickle_file_name = os.path.splitext(file_name)[0] + '.pkl'
+    pickle_file_name = os.path.splitext(file_name)[0] + '.pickle'
     if os.path.exists(pickle_file_name):
         with open(pickle_file_name, 'rb') as fp:
             matrix = pickle.load(fp)
@@ -66,10 +68,17 @@ def load_matrix(file_name):
 if __name__ == '__main__':
 
 
-    LLM = load_matrix('../data/LLM.pickle')
-    #ULM =
-    #u =
-    #locations =
+    LLM = load_matrix('data/LLM')
+
+    locations = []
+    with open('data/test_json.txt', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+        for l in data['results']:
+            locations += [l['name']]
+    ULM = np.ones(shape=(15, 8), dtype=np.float32)
+    #ULM = [[1, 1, 1, 1, 1, 1, 0, 0][1, 1, 1, 1, 1, 1, 1, 1][0, 0, 0, 0, 0, 0, 0, 0][1, 0, 0, 0, 1, 0, 0, 0][0, 0, 0, 0, 1, 1, 1, 1][0, 0, 0, 0, 0, 1, 1, 0][1, 0, 0, 0, 0, 0, 0, 0][1, 1, 1, 1, 1, 1, 1, 1]]
+    u = 1
+
     k = 3
     r = 2
     recommendations = recommend_locations_CB(LLM, ULM, u, locations, k, r, OUTPUT=True)
