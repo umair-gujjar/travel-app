@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
+import Markers from '../Markers/Markers'
+import mockedMarkers from '../data'
 
 export default class Map extends Component {
   constructor(props) {
@@ -8,12 +10,14 @@ export default class Map extends Component {
     this.state = {
       mapRegion: null,
       hasLocationPermissions: false,
-      locationResult: null
+      locationResult: null,
+      markers: []
     }
   }
 
   componentDidMount() {
     this._initLocation()
+    this._fetchMarkers()
   }
 
   _checkPermissions = async () => {
@@ -41,8 +45,18 @@ export default class Map extends Component {
     })
   }
 
+  _fetchMarkers = async () => {
+    const markers = mockedMarkers.map((mockedMarker) => ({
+      coord: {
+        latitude: mockedMarker.geometry.location.lat,
+        longitude: mockedMarker.geometry.location.lng
+      }
+    }))
+    this.setState({ markers })
+  }
+
   render() {
-    const {locationResult, hasLocationPermissions, mapRegion} = this.state
+    const {locationResult, hasLocationPermissions, mapRegion, markers} = this.state
 
     return (
       <View style={styles.container}>
@@ -60,7 +74,11 @@ export default class Map extends Component {
                     style={{ alignSelf: 'stretch', height: '100%' }}
                     region={mapRegion}
                     showsUserLocation={true}
-                  />
+                  >
+                    <Markers
+                      markers={markers}
+                    />
+                  </MapView>
                   <TouchableOpacity
                     style={styles.mapButton}
                     onPress={this._setCurrentPosition}
