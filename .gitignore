@@ -1,2 +1,4 @@
 .idea/*
 travel-backend/config/config.py
+
+*.pyc
