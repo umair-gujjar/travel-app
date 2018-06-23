@@ -5,6 +5,7 @@ from flask import request
 from providers.places import GooglePlacesDataProvider
 
 app = Flask(__name__)
+app.config.from_object("config.config.Config")
 
 
 @app.route('/')
@@ -26,8 +27,8 @@ def find_recommended():
     if location is None or radius is None:
         abort(400)
     google_api = GooglePlacesDataProvider()
-    places = google_api.get_places(location, radius)
-    return jsonify(places['results'])
+    places = google_api.get_places(app.config['API_KEY'], location, radius)
+    return jsonify(places)
 
 
 if __name__ == '__main__':
