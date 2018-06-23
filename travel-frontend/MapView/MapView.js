@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
+import ModalView from '../Modal/Modal'
 import { getHost, processMarkers } from "../lib/utils";
 
 const latitudeDelta = 0.01
@@ -14,7 +15,8 @@ export default class Map extends Component {
       mapRegion: null,
       hasLocationPermissions: false,
       locationResult: null,
-      markers: []
+      markers: [],
+      openModal: false
     }
   }
 
@@ -62,19 +64,37 @@ export default class Map extends Component {
     }
   }
 
-  setMarker = (e) => {
-    const { coordinate } = e.nativeEvent
+  setMarker = (title) => {
+    const { currentCoords } = this.state
     const markers = [...this.state.markers, {
       coords: {
-        latitude: coordinate.latitude,
-        longitude: coordinate.longitude
-      }
+        latitude: currentCoords.latitude,
+        longitude: currentCoords.longitude
+      },
+      title,
+      types: []
     }]
     this.setState({ markers })
   }
 
+  openModal = (e) => {
+    console.log('openModal')
+    const { coordinate } = e.nativeEvent
+    this.setState({ openModal: true, currentCoords: coordinate })
+  }
+
+  closeModal = () => {
+    console.log('close')
+    this.setState({ openModal: false })
+  }
+
+  submitMarker = (title) => {
+    this.setMarker(title)
+    this.closeModal()
+  }
+
   render() {
-    const { locationResult, hasLocationPermissions, mapRegion, markers } = this.state
+    const { locationResult, hasLocationPermissions, mapRegion, markers, openModal } = this.state
 
     return (
       <View style={styles.container}>
@@ -85,7 +105,7 @@ export default class Map extends Component {
             style={{ alignSelf: 'stretch', height: '100%' }}
             region={mapRegion}
             showsUserLocation={true}
-            onLongPress={this.setMarker}
+            onLongPress={this.openModal}
           >
             <Markers
               markers={markers}
@@ -99,7 +119,11 @@ export default class Map extends Component {
               Me
             </Text>
           </TouchableOpacity>
-
+          {openModal && <ModalView
+            openModal={openModal}
+            closeModal={this.closeModal}
+            submitMarker={this.submitMarker}
+          />}
         </View>
         {/*{*/}
         {/*locationResult === null ?*/}
