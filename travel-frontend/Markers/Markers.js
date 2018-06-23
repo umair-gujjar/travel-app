@@ -5,7 +5,7 @@ export default Markers = (props) => {
   if (props.markers) {
     return props.markers.map((marker, idx) => {
       return (
-        <Marker key={idx} coordinate={marker.coord} />
+        <Marker key={idx} coordinate={marker.coords} />
       )
     })
   }
