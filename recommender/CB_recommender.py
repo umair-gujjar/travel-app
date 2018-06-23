@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import os
+import pickle
 
 def recommend_locations_CB(LLM, ULM, u, locations, k, num_recommendations, OUTPUT=False):
     """
@@ -50,3 +52,24 @@ def recommend_locations_CB(LLM, ULM, u, locations, k, num_recommendations, OUTPU
     else:
         # implement fallback
         return []
+
+
+def load_matrix(file_name):
+    pickle_file_name = os.path.splitext(file_name)[0] + '.pkl'
+    if os.path.exists(pickle_file_name):
+        with open(pickle_file_name, 'rb') as fp:
+            matrix = pickle.load(fp)
+
+    return matrix
+
+#### testing the recommender
+if __name__ == '__main__':
+
+
+    LLM = load_matrix('../data/LLM.pickle')
+    #ULM =
+    #u =
+    #locations =
+    k = 3
+    r = 2
+    recommendations = recommend_locations_CB(LLM, ULM, u, locations, k, r, OUTPUT=True)
