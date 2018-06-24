@@ -39,7 +39,6 @@ export default class Map extends Component {
         } = this.state
         const distance = getDistanceFromLatLonInKm(latitude, longitude, oldLat, oldLng)
         if (distance > 0.1) {
-          console.log('test')
           this._fetchMarkers()
         }
       }
@@ -136,50 +135,42 @@ export default class Map extends Component {
   }
 
   render() {
-    const { locationResult, hasLocationPermissions, currentLocation, markers, openModal } = this.state
+    const { currentLocation, markers, openModal } = this.state
 
     return (
       <View style={styles.container}>
-        {
-          locationResult === null ?
-            <Text>Finding your current location...</Text> :
-            hasLocationPermissions === false ?
-              <Text>Location permissions are not granted.</Text> :
-              currentLocation === null ?
-                <Text>Map region doesn't exist.</Text> :
-                <View
-                  style={{ width: '100%' }}
-                >
-                  <MapView
-                    style={{ alignSelf: 'stretch', height: '100%' }}
-                    region={{
-                      ...currentLocation,
-                      latitudeDelta,
-                      longitudeDelta
-                    }}
-                    showsUserLocation={true}
-                    onLongPress={this.openModal}
-                  >
-                    <Markers
-                      markers={markers}
-                      likeMarker={this.likeMarker}
-                    />
-                  </MapView>
-                  <TouchableOpacity
-                    style={styles.mapButton}
-                    onPress={this._setCurrentPosition}
-                  >
-                    <Text style={{ fontWeight: 'bold', color: 'black' }}>
-                      Me
-                    </Text>
-                  </TouchableOpacity>
-                  {openModal && <ModalView
-                    openModal={openModal}
-                    closeModal={this.closeModal}
-                    submitMarker={this.submitMarker}
-                  />}
-                </View>
-        }
+        <View
+          style={{ width: '100%' }}
+        >
+          <MapView
+            style={{ alignSelf: 'stretch', height: '100%' }}
+            region={{
+              ...currentLocation,
+              latitudeDelta,
+              longitudeDelta
+            }}
+            showsUserLocation={true}
+            onLongPress={this.openModal}
+          >
+            <Markers
+              markers={markers}
+              likeMarker={this.likeMarker}
+            />
+          </MapView>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={this._setCurrentPosition}
+          >
+            <Text style={{ fontWeight: 'bold', color: 'black' }}>
+              Me
+            </Text>
+          </TouchableOpacity>
+          {openModal && <ModalView
+            openModal={openModal}
+            closeModal={this.closeModal}
+            submitMarker={this.submitMarker}
+          />}
+        </View>
       </View>
     )
   }
