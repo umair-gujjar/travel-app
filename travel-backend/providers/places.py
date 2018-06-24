@@ -69,9 +69,8 @@ def get_places(api_key, location, radius):
 #     c.execute("""
 #         INSERT INTO restaurants VALUES (:id, :lat, :lng, :name, :google_ratings, :types)
 #             """, {'id': A.id, 'lat': A.lat, 'lng': A.lng, 'name': A.name, 'google_ratings': A.google_rating, 'types': A.types})
-conn = sqlite3.connect('restaurant.db')
-c = conn.cursor()
-
-conn.commit()
-conn.close()
->>>>>>> 57670bac7f2cc91ccb277b95ac9d90a8f82ec05f
+# conn = sqlite3.connect('restaurant.db')
+# c = conn.cursor()
+#
+# conn.commit()
+# conn.close()
