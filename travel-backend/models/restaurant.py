@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, Float, String
 
 class Restaurant:
     __tablename__ = 'restaurants'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, unique=True)
     name = Column(String(50))
     lat = Column(Float)
     lng = Column(Float)
