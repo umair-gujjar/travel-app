@@ -68,8 +68,7 @@ def find_recommended():
                     recommendation_record['types'] = l['types']
                     recommendation_records.append(recommendation_record)
 
-    print(recommendation_records)
-    return 'recommended'
+    return jsonify(recommendation_records)
 
     # location = request.args.get("location")
     # radius = request.args.get("radius")
