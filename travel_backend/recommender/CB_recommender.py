@@ -3,6 +3,7 @@ import json
 import numpy as np
 import os
 import pickle
+from models.restaurant import Restaurant
 
 def recommend_locations_CB(LLM, ULM, u, locations, k, num_recommendations, OUTPUT=False):
     """
@@ -64,21 +65,16 @@ def load_matrix(file_name):
 
     return matrix
 
+
 #### testing the recommender
 if __name__ == '__main__':
 
-
     LLM = load_matrix('data/LLM')
-
     locations = []
-    with open('data/test_json.txt', encoding='utf-8') as json_file:
-        data = json.load(json_file)
-        for l in data['results']:
-            locations += [l['name']]
-    ULM = np.ones(shape=(15, 8), dtype=np.float32)
-    #ULM = [[1, 1, 1, 1, 1, 1, 0, 0][1, 1, 1, 1, 1, 1, 1, 1][0, 0, 0, 0, 0, 0, 0, 0][1, 0, 0, 0, 1, 0, 0, 0][0, 0, 0, 0, 1, 1, 1, 1][0, 0, 0, 0, 0, 1, 1, 0][1, 0, 0, 0, 0, 0, 0, 0][1, 1, 1, 1, 1, 1, 1, 1]]
+    restaurants = Restaurant.query.all()
+    locations += [r.name for r in restaurants if r]
+    ULM = np.random.choice([0, 1], size=(20, len(locations)), p=[1./3, 2./3])
     u = 1
-
-    k = 3
-    r = 2
+    k = 10
+    r = 5
     recommendations = recommend_locations_CB(LLM, ULM, u, locations, k, r, OUTPUT=True)

@@ -2,23 +2,15 @@ import json
 import numpy as np
 import pickle
 from collections import Counter
-from travel_backend.database.database import db_session, engine
 from travel_backend.models.restaurant import Restaurant
-
 
 locations = {}
 LLM_FILE = '../data/LLM.txt'
-
-# with open('../data/test_json.txt', encoding='utf-8') as json_file:
-#     data = json.load(json_file)
-#     for l in data['results']:
-#         locations[l['id']] = str(l['types'])
-
 restaurants = Restaurant.query.all()
 
 for r in restaurants:
-    locations[r.id] = r.types
-
+    if r:
+        locations[r.id] = r.types
 
 len_locations = len(locations)
 location_sims = np.zeros(shape=(len_locations, len_locations), dtype=np.float32)
@@ -38,7 +30,10 @@ def cosine_sim(vec1, vec2):
     len_1 = sum(a * a for a in vec1_occ) ** 0.5
     len_2 = sum(b * b for b in vec2_occ) ** 0.5
     dot = sum(a * b for a, b in zip(vec1_occ, vec2_occ))
-    cosine = dot / (len_1 * len_2)
+    if (len_1 * len_2)>0:
+        cosine = dot / (len_1 * len_2)
+    else:
+        cosine = 0
 
     return cosine
 

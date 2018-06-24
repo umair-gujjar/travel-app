@@ -7,7 +7,6 @@ import json
 import numpy as np
 
 init_db()
-
 app = Flask(__name__)
 app.config.from_object("config.config.Config")
 
@@ -34,6 +33,7 @@ def add_location():
     r = Restaurant(content['id'], content['title'], content['coords']['latitude'], content['coords']['longitude'], content['google_ratings'], content['types'])
     db_session.add(r)
     db_session.commit()
+    db_session.remove()
     return 'success'
 
 
@@ -42,45 +42,43 @@ def find_recommended():
     LLM = load_matrix('recommender/data/LLM')
 
     locations = []
-    with open('recommender/data/test_json.txt', encoding='utf-8') as json_file:
-        data = json.load(json_file)
-        for l in data['results']:
-            locations += [l['name']]
-    ULM = np.ones(shape=(15, 8), dtype=np.float32)
-    # ULM = [[1, 1, 1, 1, 1, 1, 0, 0][1, 1, 1, 1, 1, 1, 1, 1][0, 0, 0, 0, 0, 0, 0, 0][1, 0, 0, 0, 1, 0, 0, 0][0, 0, 0, 0, 1, 1, 1, 1][0, 0, 0, 0, 0, 1, 1, 0][1, 0, 0, 0, 0, 0, 0, 0][1, 1, 1, 1, 1, 1, 1, 1]]
+    restaurants = Restaurant.query.all()
+    locations += [r.name for r in restaurants if r]
+    ULM = np.random.choice([0, 1], size=(20, len(locations)), p=[1. / 3, 2. / 3])
     u = 1
+    k = 10
+    r = 5
 
-    k = 3
-    r = 2
     recommendations = recommend_locations_CB(LLM, ULM, u, locations, k, r, OUTPUT=True)
     names = []
     names += [locations[r] for r in recommendations]
     recommendation_record = {}
     recommendation_records = []
     latlang = {}
-    with open('recommender/data/test_json.txt', encoding='utf-8') as json_file:
-        data = json.load(json_file)
-        for l in data['results']:
-            for j in names:
-                if j == l['name']:
-                    latlang['latitude'] = l['geometry']['location']['lat']
-                    latlang['longitude'] = l['geometry']['location']['lng']
+    restaurants = Restaurant.query.all()
+    names_ids = {}
+
+    for r in restaurants:
+        if r:
+            names_ids[r.id] = r.name
+
+    for r in restaurants:
+        if r:
+            for (j,i) in enumerate(names_ids.values()):
+                latlang = {}
+                recommendation_record = {}
+                if i == r.name:
+                    latlang['latitude'] = r.lat
+                    latlang['longitude'] = r.lng
                     recommendation_record['coords'] = latlang
-                    recommendation_record['title'] = l['name']
-                    recommendation_record['id'] = l['id']
-                    recommendation_record['types'] = l['types']
+                    recommendation_record['title'] = r.name
+                    recommendation_record['id'] = r.id
+                    recommendation_record['types'] = r.types
                     recommendation_records.append(recommendation_record)
 
-    return jsonify(recommendation_records)
-
-    # location = request.args.get("location")
-    # radius = request.args.get("radius")
-    #
-    # if location is None or radius is None:
-    #     abort(400)
-    # places = get_places(app.config['API_KEY'], location, radius)
-    # return jsonify(places)
-
+    print(recommendation_records)
+    return 'recommended'
+    # return jsonify(recommendation_records)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
