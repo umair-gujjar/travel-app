@@ -20,3 +20,17 @@ for key in restaurant_dictionary.keys():
 
 print(len(restaurant_dictionary))
 
+
+
+#c.execute("""
+ #   CREATE TABLE restaurants (
+  #      id string,
+   #     name string,
+    #    lat string,
+     #   lng string
+      #  )""")
+for key in restaurant_dictionary.keys():
+    A = restaurant_dictionary[key]
+    c.execute("""
+        INSERT INTO restaurants VALUES (:id, :name, :lat, :lng)
+            """, {'id': A.id, 'name': A.name, 'lat': A.lat, 'lng': A.lon})
