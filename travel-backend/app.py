@@ -10,7 +10,7 @@ app.config.from_object("config.config.Config")
 
 @app.route('/')
 def hello():
-    return "Hello World!"
+    return render_template("home.html")
 
 
 @app.route('/places')
