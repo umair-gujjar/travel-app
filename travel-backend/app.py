@@ -25,6 +25,7 @@ def add_location():
     db_session.add(r)
     db_session.commit()
 
+
 @app.route('/rest/find-recommended', methods=['GET'])
 def find_recommended():
     location = request.args.get("location")

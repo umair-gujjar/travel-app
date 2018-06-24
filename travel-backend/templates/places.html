@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Places</title>
+{% extends 'template.html' %}
 
+{% block head %}
     <style>
         /* Always set the map height explicitly to define the size of the div
          * element that contains the map. */
@@ -17,46 +14,58 @@
             margin: 0;
             padding: 0;
         }
-    </style>
-</head>
-<body>
 
-<div id="map"></div>
-<script>
-    var map, lat, lng;
-    function initMap() {
-
-
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: -34.397, lng: 150.644},
-            zoom: 12
-        });
-
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(setPosition);
-            } else {
-                console.log("Geolocation is not supported by this browser.");
-            }
+        .content {
+            height: 100%;
         }
+    </style>
+{% endblock %}
 
-        function setPosition(position) {
-            console.log(position.coords.latitude, position.coords.longitude);
-            map.setCenter({lat: position.coords.latitude,
-                    lng: position.coords.longitude});
-            $.get( "http://127.0.0.1:5000/rest/find-recommended?location=" + position.coords.latitude
-                + "," + position.coords.longitude + "&radius=1000", function( data ) {
-                console.log(data);
+{% block content %}
+    <div id="map"></div>
+    <script>
+        var map, lat, lng;
+        function initMap() {
+
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: -34.397, lng: 150.644},
+                zoom: 12
             });
 
-        }
 
-        getLocation();
-    }
-</script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{config['API_KEY']}}&callback=initMap"
-        async defer></script>
-</body>
-</html>
+            function getLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(setPosition);
+                } else {
+                    console.log("Geolocation is not supported by this browser.");
+                }
+            }
+
+            function setPosition(position) {
+                console.log(position.coords.latitude, position.coords.longitude);
+                map.setCenter({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+                $.get("http://127.0.0.1:5000/rest/find-recommended?location=" + position.coords.latitude
+                    + "," + position.coords.longitude + "&radius=1000", function (data) {
+                    for (d in data) {
+                        var place = data[d];
+                        var marker = new google.maps.Marker({
+                            position: {lat: place.geometry.location.lat, lng: place.geometry.location.lng},
+                            map: map,
+                            title: 'Hello World!'
+                        });
+                    }
+                });
+
+            }
+
+            getLocation();
+        }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config['API_KEY'] }}&callback=initMap"
+            async defer></script>
+{% endblock %}

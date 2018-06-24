@@ -4,6 +4,5 @@ class Rating:
         self.value = value
 
 
-
 x = Rating(0,0)
 

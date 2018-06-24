@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Meet your traveller</title>
     <link rel="stylesheet" type="text/css" href="static/style.css">
+    {% block head %}{% endblock %}
 </head>
 <body>
     <div id="logo"></div>
@@ -14,7 +15,7 @@
         <a class="menu_button" href="/logout">Log out</a>
     </div>
 
-
+    <div class="content">{% block content %}{% endblock %}</div>
 
 </body>
 </html>
