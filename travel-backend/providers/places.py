@@ -31,7 +31,8 @@ class GooglePlacesDataProvider(PlacesDataProvider):
                                         "&location=" + location +
                                         "&radius=" + radius +
                                         "&pagetoken=" + next_page_token +
-                                        "&key=" + api_key)
+                                        "&key=" + api_key +
+                                        "&keyword = restaurant")
             response_json = response.json()
             places.extend(response_json['results'])
 
@@ -44,37 +45,51 @@ class GooglePlacesDataProvider(PlacesDataProvider):
         return places
 
 Caller = GooglePlacesDataProvider()
-places = Caller.get_places("AIzaSyDS40mCvePWcb9_eI_SErFQpt98UoTI3UI", "50.04, 14.4", "100")
+restaurant_list = []
+
+
+
 
 conn = sqlite3.connect('restaurant.db')
 
 c = conn.cursor()
 
+for i in range(-2, 2):
+    for j in range(-2, 2):
+        places = Caller.get_places("AIzaSyDS40mCvePWcb9_eI_SErFQpt98UoTI3UI",
+                                   str(50.084062 + i / 100) + ', ' + str(14.421809 + j / 100),
+                                   "500")
+        for k in range(0, 59):
+            ident = places[k]['id']
+            x = places[k]['geometry']['location']['lat']
+            y = places[k]['geometry']['location']['lat']
+            name = places[k]['name']
+            restaurant_list.append(Rest.Restaurant(ident, name, x, y))
+
+restaurant_dictionary = dict()
+for restaurant in restaurant_list:
+    if not restaurant_dictionary.__contains__(restaurant.id):
+        restaurant_dictionary[restaurant.id] = restaurant
+
+for key in restaurant_dictionary.keys():
+    print(restaurant_dictionary[key].name)
+
+print(len(restaurant_dictionary))
 
 
 
-#for i in range(-2, 2):
- #   for j in range(-2, 2):
-
- #       places = Caller.get_places("AIzaSyDS40mCvePWcb9_eI_SErFQpt98UoTI3UI", "50., 14.4", "1000")
-
-
-
-
-
-
-#c.execute("DELETE FROM users")
-#for i in range(0, 50):
-#    x = U.User(i+1, 'Name' + str(i + 1), randint(1, 5))
-#    c.execute("INSERT INTO users VALUES (:id, :name, :distance)", {'id': x.id, 'name': x.name, 'distance': x.relationshipdistance})
-
-c.execute("CREATE ")
-conn.commit()
-
-conn.close()
-
-c.execute("SELECT * FROM users")
-print(c.fetchall())
+#c.execute("""
+ #   CREATE TABLE restaurants (
+  #      id string,
+   #     name string,
+    #    lat string,
+     #   lng string
+      #  )""")
+for key in restaurant_dictionary.keys():
+    A = restaurant_dictionary[key]
+    c.execute("""
+        INSERT INTO restaurants VALUES (:id, :name, :lat, :lng)
+            """, {'id': A.id, 'name': A.name, 'lat': A.lat, 'lng': A.lon})
 
 conn.commit()
 
