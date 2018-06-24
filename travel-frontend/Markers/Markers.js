@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { Text, View, StyleSheet, FlatList } from 'react-native'
+import { Text, View, StyleSheet, FlatList, Button } from 'react-native'
 import { Marker, Callout } from 'react-native-maps'
 import { Badge } from 'react-native-elements'
+import { getUserId } from "../lib/utils";
 
 const tagColors = ['#EF5350', '#EC407A', '#AB47BC', '#1E88E5', '#7E57C2', '#009688', '#E64A19']
 
@@ -14,7 +15,9 @@ export default Markers = (props) => {
           coordinate={marker.coords}
           onPress={e => console.log(e.nativeEvent)}
         >
-          <Callout style={styles.tooltip}>
+          <Callout style={styles.tooltip}
+                   onPress={() => !marker.users.includes(getUserId()) && props.likeMarker(marker.id)}
+                     >
             <View style={styles.title}>
               <Text
                 style={{
@@ -22,6 +25,9 @@ export default Markers = (props) => {
                   fontSize: 16
                 }}
               >{marker.title}</Text>
+            </View>
+            <View>
+              <Text>{marker.users.length} Likes</Text>
             </View>
             <FlatList
               data={marker.types}
@@ -51,7 +57,7 @@ export default Markers = (props) => {
 const styles = StyleSheet.create({
   tooltip: {
     minWidth: 100,
-    maxWidth: 200
+    maxWidth: 250
   },
   category: {
     alignSelf: 'flex-start',
@@ -64,5 +70,10 @@ const styles = StyleSheet.create({
   title: {
     alignSelf: 'center',
     marginBottom: 5
+  },
+  like: {
+    width: 40,
+    height: 40,
+    borderRadius: 100
   }
 })

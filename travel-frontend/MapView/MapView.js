@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
 import ModalView from '../Modal/Modal'
-import { getHost, processMarkers } from "../lib/utils";
+import { getHost, processMarkers, getUserId } from "../lib/utils";
 import axios from 'axios'
 
 const latitudeDelta = 0.01
@@ -73,15 +73,20 @@ export default class Map extends Component {
 
   setMarker = (title) => {
     const { currentCoords } = this.state
-    const markers = [...this.state.markers, {
+    const newMarker = {
       coords: {
         latitude: currentCoords.latitude,
         longitude: currentCoords.longitude
       },
       title,
-      types: []
-    }]
+      types: [],
+      users: [getUserId()]
+    }
+    const markers = [...this.state.markers, newMarker]
     this.setState({ markers })
+    const url = `${getHost()}/rest/add-location`
+    console.log(newMarker)
+    axios.post(url, newMarker)
   }
 
   openModal = (e) => {
@@ -96,6 +101,14 @@ export default class Map extends Component {
   submitMarker = (title) => {
     this.setMarker(title)
     this.closeModal()
+  }
+
+  likeMarker = (id) => {
+    const newMarkers = this.state.markers.map(marker => marker.id !== id ? marker : {
+      ...marker,
+      users: !marker.users.includes(id) ? [...marker.users, id] : marker.users
+    })
+    this.setState({ markers: newMarkers })
   }
 
   render() {
@@ -121,6 +134,7 @@ export default class Map extends Component {
                   >
                     <Markers
                       markers={markers}
+                      likeMarker={this.likeMarker}
                     />
                   </MapView>
                   <TouchableOpacity
