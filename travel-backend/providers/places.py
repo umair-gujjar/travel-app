@@ -1,48 +1,37 @@
 import requests
 import time
 import sqlite3
-from recommender.model_classes import Restaurant as Rest
+# from ...recommender.model_classes import Restaurant as Rest
 
 
-class PlacesDataProvider:
-    """Places data provider interface"""
-
-    def get_places(self, api_key, location, radius):
-        """Returns places data"""
-        raise NotImplementedError()
-
-
-class GooglePlacesDataProvider(PlacesDataProvider):
+def get_places(api_key, location, radius):
     __URL = "https://maps.googleapis.com/maps/api/place/"
+    places = []
+    next_page_token = ""
 
-    def get_places(self, api_key, location, radius):
-        places = []
-        next_page_token = ""
+    while True:
+        time.sleep(2)
+        if next_page_token is None:
+            response = requests.get(__URL + "nearbysearch/json?" +
+                                    "&location=" + location +
+                                    "&radius=" + radius +
+                                    "&key=" + api_key)
+        else:
+            response = requests.get(__URL + "nearbysearch/json?" +
+                                    "&location=" + location +
+                                    "&radius=" + radius +
+                                    "&pagetoken=" + next_page_token +
+                                    "&key=" + api_key +
+                                    "&keyword = restaurant")
+        response_json = response.json()
+        places.extend(response_json['results'])
 
-        while True:
-            time.sleep(2)
-            if next_page_token is None:
-                response = requests.get(self.__URL + "nearbysearch/json?" +
-                                        "&location=" + location +
-                                        "&radius=" + radius +
-                                        "&key=" + api_key)
-            else:
-                response = requests.get(self.__URL + "nearbysearch/json?" +
-                                        "&location=" + location +
-                                        "&radius=" + radius +
-                                        "&pagetoken=" + next_page_token +
-                                        "&key=" + api_key +
-                                        "&keyword = restaurant")
-            response_json = response.json()
-            places.extend(response_json['results'])
+        if 'next_page_token' in response_json:
+            next_page_token = response_json['next_page_token']
+        else:
+            break
 
-            if 'next_page_token' in response_json:
-                next_page_token = response_json['next_page_token']
-            else:
-                break
-
-
-        return places
+    return places
 
 
 
@@ -80,8 +69,8 @@ class GooglePlacesDataProvider(PlacesDataProvider):
 #     c.execute("""
 #         INSERT INTO restaurants VALUES (:id, :lat, :lng, :name, :google_ratings, :types)
 #             """, {'id': A.id, 'lat': A.lat, 'lng': A.lng, 'name': A.name, 'google_ratings': A.google_rating, 'types': A.types})
-conn = sqlite3.connect('restaurant.db')
-c = conn.cursor()
-
-conn.commit()
-conn.close()
+# conn = sqlite3.connect('restaurant.db')
+# c = conn.cursor()
+#
+# conn.commit()
+# conn.close()
