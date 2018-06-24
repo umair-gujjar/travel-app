@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
 import ModalView from '../Modal/Modal'
-import { getHost, processMarkers } from "../lib/utils";
+import { getHost, processMarkers, getUserId, getDistanceFromLatLonInKm } from "../lib/utils";
 import axios from 'axios'
 
 const latitudeDelta = 0.01
@@ -13,7 +13,8 @@ export default class Map extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      mapRegion: null,
+      currentLocation: null,
+      oldLocation: null,
       hasLocationPermissions: false,
       locationResult: null,
       markers: [],
@@ -23,6 +24,26 @@ export default class Map extends Component {
 
   componentDidMount() {
     this._initLocation()
+
+    setTimeout(() => {
+      if (this.state.locationResult && this.state.oldLocation) {
+        const {
+          currentLocation: {
+            latitude,
+            longitude
+          },
+          oldLocation: {
+            latitude: oldLat,
+            longitude: oldLng,
+          }
+        } = this.state
+        const distance = getDistanceFromLatLonInKm(latitude, longitude, oldLat, oldLng)
+        if (distance > 0.1) {
+          console.log('test')
+          this._fetchMarkers()
+        }
+      }
+    }, 10000);
   }
 
   componentDidUpdate() {
@@ -41,23 +62,29 @@ export default class Map extends Component {
   _initLocation = async () => {
     await this._checkPermissions()
     await this._setCurrentPosition()
-    this.setState({ locationResult: JSON.stringify(this.state.mapRegion) })
+    this.setState({ locationResult: JSON.stringify(this.state.currentLocation) })
   }
 
   _setCurrentPosition = async () => {
     const { coords } = await Location.getCurrentPositionAsync({})
+    if (this.state.currentLocation) {
+      this.setState({
+        oldLocation: {
+          latitude: this.state.currentLocation.latitude,
+          longitude: this.state.currentLocation.longitude
+        }
+      })
+    }
     this.setState({
-      mapRegion: {
+      currentLocation: {
         latitude: coords.latitude,
-        longitude: coords.longitude,
-        latitudeDelta,
-        longitudeDelta
+        longitude: coords.longitude
       }
     })
   }
 
   _fetchMarkers = async () => {
-    const { latitude, longitude } = this.state.mapRegion
+    const { latitude, longitude } = this.state.currentLocation
     const url = `${getHost()}/rest/find-recommended?location=${latitude},${longitude}&radius=1000`
     try {
       const { data } = await axios.get(url)
@@ -67,21 +94,23 @@ export default class Map extends Component {
     } catch (e) {
       console.log(e)
     }
-
-
   }
 
   setMarker = (title) => {
     const { currentCoords } = this.state
-    const markers = [...this.state.markers, {
+    const newMarker = {
       coords: {
         latitude: currentCoords.latitude,
         longitude: currentCoords.longitude
       },
       title,
-      types: []
-    }]
+      types: [],
+      users: [getUserId()]
+    }
+    const markers = [...this.state.markers, newMarker]
     this.setState({ markers })
+    const url = `${getHost()}/rest/add-location`
+    axios.post(url, JSON.stringify(newMarker))
   }
 
   openModal = (e) => {
@@ -98,8 +127,16 @@ export default class Map extends Component {
     this.closeModal()
   }
 
+  likeMarker = (id) => {
+    const newMarkers = this.state.markers.map(marker => marker.id !== id ? marker : {
+      ...marker,
+      users: !marker.users.includes(id) ? [...marker.users, id] : marker.users
+    })
+    this.setState({ markers: newMarkers })
+  }
+
   render() {
-    const { locationResult, hasLocationPermissions, mapRegion, markers, openModal } = this.state
+    const { locationResult, hasLocationPermissions, currentLocation, markers, openModal } = this.state
 
     return (
       <View style={styles.container}>
@@ -108,19 +145,24 @@ export default class Map extends Component {
             <Text>Finding your current location...</Text> :
             hasLocationPermissions === false ?
               <Text>Location permissions are not granted.</Text> :
-              mapRegion === null ?
+              currentLocation === null ?
                 <Text>Map region doesn't exist.</Text> :
                 <View
                   style={{ width: '100%' }}
                 >
                   <MapView
                     style={{ alignSelf: 'stretch', height: '100%' }}
-                    region={mapRegion}
+                    region={{
+                      ...currentLocation,
+                      latitudeDelta,
+                      longitudeDelta
+                    }}
                     showsUserLocation={true}
                     onLongPress={this.openModal}
                   >
                     <Markers
                       markers={markers}
+                      likeMarker={this.likeMarker}
                     />
                   </MapView>
                   <TouchableOpacity

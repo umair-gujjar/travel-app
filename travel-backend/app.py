@@ -33,6 +33,7 @@ def add_location():
     db_session.commit()
     return 'success'
 
+
 @app.route('/rest/find-recommended', methods=['GET'])
 def find_recommended():
     LLM = load_matrix('recommender/data/LLM')
