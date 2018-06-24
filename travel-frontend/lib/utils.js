@@ -1,4 +1,4 @@
-export const getHost = () => 'http://d42b979b.ngrok.io'
+export const getHost = () => 'http://03845847.ngrok.io'
 
 export const getUserId = () => 1
 
@@ -12,10 +12,10 @@ const users = [
 export const processMarkers = markers => markers.map(marker => ({
   id: marker.id,
   coords: {
-    latitude: marker.geometry.location.lat,
-    longitude: marker.geometry.location.lng
+    latitude: marker.coords.latitude,
+    longitude: marker.coords.longitude
   },
-  title: marker.name,
+  title: marker.title,
   types: marker.types,
   users: users[Math.floor(Math.random() * users.length)]
 }))
