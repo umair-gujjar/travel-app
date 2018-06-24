@@ -2,8 +2,9 @@ import json
 import numpy as np
 import pickle
 from collections import Counter
-#from travel-app.travel-backend.database.database import db_session
-from travel_app.travel_backend.models.restaurant import Restaurant
+from travel_backend.database.database import db_session, engine
+from travel_backend.models.restaurant import Restaurant
+
 
 locations = {}
 LLM_FILE = '../data/LLM.txt'
@@ -14,8 +15,10 @@ LLM_FILE = '../data/LLM.txt'
 #         locations[l['id']] = str(l['types'])
 
 restaurants = Restaurant.query.all()
+
 for r in restaurants:
     locations[r.id] = r.types
+
 
 len_locations = len(locations)
 location_sims = np.zeros(shape=(len_locations, len_locations), dtype=np.float32)

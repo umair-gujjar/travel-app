@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meet your traveller</title>
+    <link rel="stylesheet" type="text/css" href="static/style.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div id="logo"></div>
+    <div id="menu">
+        <a class="menu_button" href="">Home</a>
+        <a class="menu_button" href="/places">Find a place</a>
+        <a class="menu_button" href="">Settings</a>
+        <a class="menu_button" href="/logout">Log out</a>
+    </div>
+
+    <div class="content">{% block content %}{% endblock %}</div>
+
+</body>
+</html>
