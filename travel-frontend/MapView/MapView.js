@@ -2,6 +2,12 @@ import React, { Component } from 'react'
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Constants, MapView, Location, Permissions } from 'expo'
 import Markers from '../Markers/Markers'
+import ModalView from '../Modal/Modal'
+import { getHost, processMarkers } from "../lib/utils";
+import axios from 'axios'
+
+const latitudeDelta = 0.01
+const longitudeDelta = 0.01
 
 export default class Map extends Component {
   constructor(props) {
@@ -10,7 +16,8 @@ export default class Map extends Component {
       mapRegion: null,
       hasLocationPermissions: false,
       locationResult: null,
-      markers: []
+      markers: [],
+      openModal: false
     }
   }
 
@@ -18,8 +25,7 @@ export default class Map extends Component {
     this._initLocation()
   }
 
-  componentDidUpdate () {
-    console.log(this.state.markers)
+  componentDidUpdate() {
     if (this.state.locationResult && !this.state.markers.length) {
       this._fetchMarkers()
     }
@@ -44,30 +50,56 @@ export default class Map extends Component {
       mapRegion: {
         latitude: coords.latitude,
         longitude: coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01
+        latitudeDelta,
+        longitudeDelta
       }
     })
   }
 
   _fetchMarkers = async () => {
     const { latitude, longitude } = this.state.mapRegion
-    const fetchedMarkers = await fetch(`http://5b684a58.ngrok.io/rest/find-recommended?location=${latitude},${longitude}&radius=1000`)
-    const data = await fetchedMarkers.json()
-    if (data) {
-      const markers = data.map(marker => ({
-        coords: {
-          latitude: marker.geometry.location.lat,
-          longitude: marker.geometry.location.lng
-        }
-      }))
-      console.log(markers)
-      this.setState({ markers })
+    const url = `${getHost()}/rest/find-recommended?location=${latitude},${longitude}&radius=1000`
+    try {
+      const { data } = await axios.get(url)
+      if (data) {
+        this.setState({ markers: processMarkers(data) })
+      }
+    } catch (e) {
+      console.log(e)
     }
+
+
+  }
+
+  setMarker = (title) => {
+    const { currentCoords } = this.state
+    const markers = [...this.state.markers, {
+      coords: {
+        latitude: currentCoords.latitude,
+        longitude: currentCoords.longitude
+      },
+      title,
+      types: []
+    }]
+    this.setState({ markers })
+  }
+
+  openModal = (e) => {
+    const { coordinate } = e.nativeEvent
+    this.setState({ openModal: true, currentCoords: coordinate })
+  }
+
+  closeModal = () => {
+    this.setState({ openModal: false })
+  }
+
+  submitMarker = (title) => {
+    this.setMarker(title)
+    this.closeModal()
   }
 
   render() {
-    const {locationResult, hasLocationPermissions, mapRegion, markers} = this.state
+    const { locationResult, hasLocationPermissions, mapRegion, markers, openModal } = this.state
 
     return (
       <View style={styles.container}>
@@ -85,6 +117,7 @@ export default class Map extends Component {
                     style={{ alignSelf: 'stretch', height: '100%' }}
                     region={mapRegion}
                     showsUserLocation={true}
+                    onLongPress={this.openModal}
                   >
                     <Markers
                       markers={markers}
@@ -98,11 +131,14 @@ export default class Map extends Component {
                       Me
                     </Text>
                   </TouchableOpacity>
-
+                  {openModal && <ModalView
+                    openModal={openModal}
+                    closeModal={this.closeModal}
+                    submitMarker={this.submitMarker}
+                  />}
                 </View>
         }
       </View>
-
     )
   }
 }
