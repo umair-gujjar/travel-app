@@ -19,7 +19,7 @@ for key in restaurant_dictionary.keys():
     print(restaurant_dictionary[key].name)
 
 print(len(restaurant_dictionary))
-
+dict().__contains('rating')
 
 
 #c.execute("""
